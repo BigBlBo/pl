@@ -1,0 +1,44 @@
+﻿@model LoginModel
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script language="javascript" type="text/javascript">
+    function GetInterval(_dezurniid) {
+        var procemessage = "<option value='0'> Please wait...</option>";
+        $("#ddlcity").html(procemessage).show();
+        var url = "/Home/GetIntervalByDezurniId/";
+
+        $.ajax({
+            url: url,
+            data: { dezurniid: _dezurniid },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                console.log(data);
+                var markup = "<option value='0'>Select City</option>";
+                for (var x = 0; x < data.length; x++) {
+                    markup += "<option value=" + data[x].value + ">" + data[x].text + "</option>";
+                }
+                $("#ddlcity").html(markup).show();
+            },
+            error: function (reponse) {
+                alert("error : " + reponse);
+            }
+        });
+
+    }
+</script>
+<h4>
+    MVC Cascading Dropdown List Using Jquery
+</h4>
+<form method="post" action="@Url.Action("LogIn", "Home")">
+    
+    @Html.DropDownListFor(m => m.DezurniModel, new SelectList(Model.DezurniModel, "Id", "ImePriimek"), new { @id = "ddlstate", @onchange = "javascript:GetInterval(this.value);" })
+    <br />
+    <br />
+    <select id="ddlcity" name="ddlcity"></select>
+    <button type="submit"></button>
+    <br /><br />
+    </form>
