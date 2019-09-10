@@ -8,8 +8,7 @@ namespace PlinovodiDezurstva.Models.ViewModels
 {
     public class LoginModel
     {
-        public List<Dezurni> DezurniModel { get; set; }
-        public SelectList FilteredCity { get; set; }
+        public List<Dezurni> DezurniModel { get; set; } = new List<Dezurni>();
     }
     public class Dezurni
     {

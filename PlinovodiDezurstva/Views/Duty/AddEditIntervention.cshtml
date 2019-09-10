@@ -1,0 +1,161 @@
+﻿@model InterventionEdit
+
+    <form method="post">
+        <div class="form-row" hidden>
+            <div class="form-group col-md-12">
+                <label for="Id">Id intervencije</label>
+                <text type="text" class="form-control" id="Id" name="Id" maxlength="50" value="@Model.Id" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="ShortDescription">Naslov intervencije</label>
+                <input type="text" class="form-control" id="ShortDescription" name="ShortDescription" maxlength="50" value="@Model.ShortDescription" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="InterventionDayId">Dan</label>
+                <select class="form-control " name="InterventionDayId" id="InterventionDayId" onchange="javascript:SetTimesOnDayChange(this.value);">
+                    @foreach (var item in @Model.Days)
+                    {
+                        @if (@item.Id == @Model.SelectedDay)
+                        {
+                            <option value="@item.Id" selected> @item.Day</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id"> @item.Day</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label for="InterventionTimeStartId">Začetek</label>
+                <select class="form-control " name="InterventionTimeStartId" id="InterventionTimeStartId" onchange="javascript:SetTimesOnStartTimeChange(this.value);">
+                    @foreach (var item in @Model.StartTimes)
+                    {
+                        @if (@item.Id == @Model.SelectedStartTime)
+                        {
+                            <option value="@item.Id" selected> @item.Time</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id"> @item.Time</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label for="InterventionTimeStartId">Konec</label>
+                <select class="form-control " name="InterventionTimeEndId" id="InterventionTimeEndId" onchange="javascript:SetTimesOnEndTimeChange(this.value);">
+                    @foreach (var item in @Model.EndTimes)
+                    {
+                        @if (@item.Id == @Model.SelectedEndTime)
+                        {
+                            <option value="@item.Id" selected> @item.Time</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id"> @item.Time</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="LongDescription">Dolgi opis intervencije</label>
+                <textarea class="form-control" id="LongDescription" name="LongDescription" rows="10" maxlength="500">@Model.LongDescription</textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" asp-action="EditIntervention">Vpis</button>
+        <a asp-action="Index" class="btn btn-danger">Preklic</a>
+    </form>
+
+    <script language="javascript" type="text/javascript">
+        function SetTimesOnDayChange(dayId) {
+            console.log(dayId);
+            if (dayId == 0) {
+                console.log(dayId);
+                for (var index = 0; index < 7; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", true);
+                }
+                for (var index = 1; index < 8; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
+                }
+            }
+            else if (dayId == 7) {
+                for (var index = 7; index <= 23; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", true);
+                }
+                for (var index = 8; index <= 24; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
+                }
+            }
+            else {
+                for (var index = 0; index <= 23; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", false);
+                }
+                for (var index = 1; index <= 24; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", false);
+                }
+            }
+    }
+    
+        function SetTimesOnStartTimeChange(TimeId) {
+            console.log(TimeId);
+            var selected = $('#InterventionTimeEndId').find(":selected").val();
+            console.log(selected);
+            var isSelected = false;
+
+            for (var index = 0; index <= 23; index++) {
+                $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", false);
+            }
+
+            for (var index = TimeId; index > 1; index--) {
+                $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
+                if (Number(selected) === index) {
+                    isSelected = true;
+                }
+            }
+
+            if (isSelected) {
+                for (var index = 1; index <= 24; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("selected", false);
+                }
+
+                var selected = Number(TimeId) + 1;
+                $('#InterventionTimeEndId option[value="' + selected + '"]').attr("selected", true);
+            }
+        }
+    
+        function SetTimesOnEndTimeChange(TimeId) {
+            console.log(TimeId);
+            var selected = $('#InterventionTimeStartId').find(":selected").val();
+            console.log(selected);
+            var isSelected = false;
+
+            for (var index = 0; index <= 23; index++) {
+                $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", false);
+            }
+
+            for (var index = TimeId; index <= 23; index++) {
+                $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", true);
+                if (Number(selected) === index) {
+                    isSelected = true;
+                }
+            }
+
+            if (isSelected) {
+                for (var index = 0; index <= 23; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("selected", false);
+                }
+                var selected = Number(TimeId) - 1;
+                $('#InterventionTimeStartId option[value="' + selected + '"]').attr("selected", true);
+            }
+        }
+        
+    </script>

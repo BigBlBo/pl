@@ -2,56 +2,81 @@
 using PlinovodiDezurstva.Models.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using PlinovodiDezurstva.Models;
+using PlinovodiDezurstva.Infrastructure;
+using PlinovodiDezurstva.Data;
 
 namespace PlinovodiDezurstva.Controllers
 {
     public class HomeController : Controller
     {
         private readonly IServiceProvider _services;
-        public HomeController(IServiceProvider services)
+        private readonly IPlinovodiDutyDataRead _plinovodiDutyDataRead;
+
+        public HomeController(IServiceProvider services, IPlinovodiDutyDataRead plinovodiDutyDataRead)
         {
             this._services = services;
+            this._plinovodiDutyDataRead = plinovodiDutyDataRead;
         }
 
-        public ViewResult Index()
+        public async Task<ViewResult> Index()
         {
-            LoginModel lm = new LoginModel();
-            lm.DezurniModel = new List<Dezurni>();
-            lm.DezurniModel.Add(new Dezurni { Id = 1, ImePriimek = "Bozo" });
-            lm.DezurniModel.Add(new Dezurni { Id = 2, ImePriimek = "Joco" });
-            return View("Login", lm);
-        }
+            IEnumerable<Employee> employeeList = await _plinovodiDutyDataRead.GetEmployee();
+            LoginModel loginModel = new LoginModel();
 
-        [HttpPost]
-        public ActionResult GetIntervalByDezurniId(int dezurniid)
-        {
-            List<Interval> objcity = new List<Interval>();
-            Random rnd = new Random();
-            int length = 20;
-            var str = "";
-            for (var i = 0; i < length; i++)
+            foreach(Employee employee in employeeList)
             {
-                str += ((char)(rnd.Next(1, 26) + 64)).ToString();
+                loginModel.DezurniModel.Add(new Dezurni { Id = employee.Id, ImePriimek = employee.Name + " " + employee.Surname });
             }
 
-            objcity.Add(new Interval { Id = 1, Obdobje = str });
-            SelectList obgcity = new SelectList(objcity, "Id", "Obdobje", 0);
-            return Json(obgcity);
+            return View("Login", loginModel);
+        }
+
+        public async Task<ActionResult> GetIntervalByEmployeeId(int dezurniid)
+        {
+            IEnumerable<Duty> dutyList = await _plinovodiDutyDataRead.GetEmployeeDuty(dezurniid);
+
+            List<Interval> dutyInterval = new List<Interval>();
+            foreach (Duty duty in dutyList)
+            {
+                dutyInterval.Add(new Interval { Id = duty.Id, Obdobje = duty.From.ToString() + " - " + duty.To.ToString() });
+            }
+
+            return Json(dutyInterval);
         }
 
         [HttpPost]
-        public RedirectToActionResult LogIn(int DezurniModel, int ddlcity)
+        public async Task<RedirectToActionResult> LogIn(int employeeId, int dutyId)
         {
+            Duty duty = await _plinovodiDutyDataRead.GetDuty(dutyId);
+
             ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
-            session.SetInt32("IdDezurni", DezurniModel);
-            session.SetInt32("ddlcity", ddlcity);
+            SessionLogIn ses = new SessionLogIn();
+            ses.EmployeeId = employeeId;
+            ses.DutyId = dutyId;
+            DateTime day = duty.From;
+            ses.DaysOfDuty.Add(day);
+
+            for (int i = 0; i < 7; i++)
+            {
+                day = day.AddDays(1);
+                ses.DaysOfDuty.Add(day);
+            }
+
+            session.SetJson("ses", ses);
 
             return RedirectToAction("Index", "Duty");
          }
+
+        public RedirectToActionResult LogOut()
+        {
+            ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
+            session.Clear();
+
+            return RedirectToAction("Index");
+        }
     }
 }

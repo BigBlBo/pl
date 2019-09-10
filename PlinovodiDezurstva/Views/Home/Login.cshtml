@@ -1,44 +1,77 @@
 ﻿@model LoginModel
 @{
-    ViewBag.Title = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "_LayoutStart";
+}
+
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContext
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@functions{
+    public string GetAntiXsrfRequestToken()
+    {
+        return Xsrf.GetAndStoreTokens(HttpContext.HttpContext).RequestToken;
+    }
+}
+
+
+<form method="post" action="@Url.Action("LogIn", "Home")">
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="InterventionDayId">Dan</label>
+            <select class="form-control" name="employeeId" id="employeeId" onchange="javascript:GetInterval(this.value);">
+                @foreach (var item in @Model.DezurniModel)
+                {
+                    <option value="@item.Id"> @item.ImePriimek</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="dutyId">Dežurstvo</label>
+            <select class="form-control" id="dutyId" name="dutyId"></select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <button type="submit" class="btn btn-primary" id="logInB" name="logInBtn">LogIn</button>
+    </div>
+</form>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
 }
 
 <script language="javascript" type="text/javascript">
-    function GetInterval(_dezurniid) {
-        var procemessage = "<option value='0'> Please wait...</option>";
-        $("#ddlcity").html(procemessage).show();
-        var url = "/Home/GetIntervalByDezurniId/";
+    function GetInterval(_employeeid) {
+       //var token = "@Html.AntiForgeryToken()";
+        //console.log(token);
+        document.getElementById("logInB").disabled = true;
+        var url = "@Url.Action("GetIntervalByEmployeeId", "Home")";
+        var form = $('#__AjaxAntiForgeryForm');
+        var token2 = $('input[name="__RequestVerificationToken"]', form).val();
+        console.log(_employeeid);
 
         $.ajax({
             url: url,
-            data: { dezurniid: _dezurniid },
+            data: {"dezurniid": _employeeid },
             cache: false,
-            type: "POST",
+            contentType: "application/json",
+            type: "GET",
+            //headers:{ "RequestVerificationToken": token },
             success: function (data) {
                 console.log(data);
-                var markup = "<option value='0'>Select City</option>";
+                var markup = "";
                 for (var x = 0; x < data.length; x++) {
-                    markup += "<option value=" + data[x].value + ">" + data[x].text + "</option>";
+                    markup += "<option value=" + data[x].id + ">" + data[x].obdobje + "</option>";
+                    document.getElementById("logInB").disabled = false;
                 }
-                $("#ddlcity").html(markup).show();
+                $("#dutyId").html(markup).show();
             },
             error: function (reponse) {
                 alert("error : " + reponse);
             }
         });
-
     }
+
+    var selected = $('#employeeId').find(":selected").val();
+    GetInterval(selected);
 </script>
-<h4>
-    MVC Cascading Dropdown List Using Jquery
-</h4>
-<form method="post" action="@Url.Action("LogIn", "Home")">
-    
-    @Html.DropDownListFor(m => m.DezurniModel, new SelectList(Model.DezurniModel, "Id", "ImePriimek"), new { @id = "ddlstate", @onchange = "javascript:GetInterval(this.value);" })
-    <br />
-    <br />
-    <select id="ddlcity" name="ddlcity"></select>
-    <button type="submit"></button>
-    <br /><br />
-    </form>
