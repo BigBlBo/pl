@@ -102,7 +102,7 @@ END
 
 
 
-DECLARE @i int = 1
+SET @i  = 1
 WHILE @i <= 10
 BEGIN
 	INSERT INTO [plinovodiduty].[employeeonduty]([employeeid] ,[dutyid]) VALUES((@i % 3) + 1, @i)

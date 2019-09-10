@@ -5,6 +5,7 @@ using PlinovodiDezurstva.Data;
 using PlinovodiDezurstva.Infrastructure;
 using PlinovodiDezurstva.Models;
 using PlinovodiDezurstva.Models.ViewModels;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,25 +18,33 @@ namespace PlinovodiDezurstva.Controllers
         private readonly IServiceProvider _services;
         private readonly IPlinovodiDutyDataRead _plinovodiDutyDataRead;
         private readonly IPlinovodiDutyDataWrite _plinovodiDutyDataWrite;
+        private readonly ILogger _logger;
 
-        public DutyController(IServiceProvider services, IPlinovodiDutyDataRead plinovodiDutyDataRead, IPlinovodiDutyDataWrite plinovodiDutyDataWrite)
+        public DutyController(IServiceProvider services, IPlinovodiDutyDataRead plinovodiDutyDataRead, 
+                IPlinovodiDutyDataWrite plinovodiDutyDataWrite, ILogger logger)
         {
             this._services = services;
             this._plinovodiDutyDataRead = plinovodiDutyDataRead;
             this._plinovodiDutyDataWrite = plinovodiDutyDataWrite;
+            this._logger = logger;
         }
 
         public async Task<ViewResult> Index()
         {
+            this._logger.Information($"Start {nameof(Index)}");
+
             ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
             SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
             IEnumerable<Intervention> interventionList = await _plinovodiDutyDataRead.GetInterventions(ses.DutyId);
-        
+
+            this._logger.Information($"End {nameof(Index)}");
             return View(interventionList);
         }
 
         public ViewResult CreateIntervention()
         {
+            this._logger.Information($"Start {nameof(CreateIntervention)}");
+
             ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
             SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
 
@@ -45,11 +54,14 @@ namespace PlinovodiDezurstva.Controllers
                 interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("dd-MM-yyyy") });
             }
 
+            this._logger.Information($"End {nameof(CreateIntervention)}");
             return View("AddEditIntervention", interventionEdit);
         }
 
         public async Task<ViewResult> EditIntervention(int Id)
         {
+            this._logger.Information($"Start {nameof(EditIntervention)} Id = {Id}");
+
             ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
             SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
             Intervention intervention = await _plinovodiDutyDataRead.GetIntervention(Id);
@@ -90,12 +102,15 @@ namespace PlinovodiDezurstva.Controllers
                 }
             }
 
+            this._logger.Information($"End {nameof(EditIntervention)}");
             return View("AddEditIntervention", interventionEdit);
         }
 
         [HttpPost]
         public async Task<RedirectToActionResult> EditIntervention(InterventionPostBack interventionPostBack)
         {
+            this._logger.Information($"Start {nameof(EditIntervention)} interventionPostBack = {interventionPostBack}");
+
             ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
             SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
             Intervention intervention = new Intervention();
@@ -108,7 +123,7 @@ namespace PlinovodiDezurstva.Controllers
             intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, interventionPostBack.InterventionTimeEndId, 0, 0);
 
             intervention.ShortDescription = interventionPostBack.ShortDescription;
-            intervention.LongDescription = interventionPostBack.LongDescription;
+            intervention.LongDescription = interventionPostBack.LongDescription != null ? interventionPostBack.LongDescription : "";
 
             if (interventionPostBack.Id == 0)
             {
@@ -119,13 +134,21 @@ namespace PlinovodiDezurstva.Controllers
                 await _plinovodiDutyDataWrite.UpdateIntervention(intervention);
             }
 
+            this._logger.Information($"End {nameof(EditIntervention)}");
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public IActionResult Delete(int Id)
+        public async Task<RedirectToActionResult> Delete(int Id)
         {
+            this._logger.Information($"Start {nameof(Delete)} Id = {Id}");
 
+            Intervention intervention = new Intervention();
+            intervention.Id = Id;
+
+            await _plinovodiDutyDataWrite.DeleteIntervention(intervention);
+
+            this._logger.Information($"End {nameof(Delete)}");
             return RedirectToAction("Index");
         }
     }

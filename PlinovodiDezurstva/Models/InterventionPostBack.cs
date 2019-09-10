@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace PlinovodiDezurstva.Models
 {
@@ -13,5 +10,7 @@ namespace PlinovodiDezurstva.Models
         public int InterventionTimeStartId { get; set; }
         public int InterventionTimeEndId { get; set; }
         public string LongDescription { get; set; }
+
+        public override string ToString() { return JsonConvert.SerializeObject(this); }
     }
 }

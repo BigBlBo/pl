@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PlinovodiDezurstva.Models.ViewModels
 {
@@ -23,6 +24,7 @@ namespace PlinovodiDezurstva.Models.ViewModels
         public List<InterventionDay> Days { get; set; } = new List<InterventionDay>();
         public List<InterventionTime> StartTimes { get; set; }
         public List<InterventionTime> EndTimes  { get; set; }
+        [Required]
         public string ShortDescription { get; set; }
         public string LongDescription { get; set; }
 

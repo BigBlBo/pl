@@ -7,6 +7,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace PlinovodiDezurstva
 {
@@ -19,6 +20,10 @@ namespace PlinovodiDezurstva
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+             .UseSerilog((context, config) =>
+             {
+                 config.ReadFrom.Configuration(context.Configuration);
+             })
                 .UseStartup<Startup>();
     }
 }

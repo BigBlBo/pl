@@ -10,7 +10,8 @@
         <div class="form-row">
             <div class="form-group col-md-12">
                 <label for="ShortDescription">Naslov intervencije</label>
-                <input type="text" class="form-control" id="ShortDescription" name="ShortDescription" maxlength="50" value="@Model.ShortDescription" />
+                <input required  type="text" class="form-control" id="ShortDescription" name="ShortDescription" maxlength="50" value="@Model.ShortDescription" 
+                       data-val-required="The Full Name field is required."/>
             </div>
         </div>
 
@@ -80,28 +81,33 @@
             console.log(dayId);
             if (dayId == 0) {
                 console.log(dayId);
+                EnableAll();
                 for (var index = 0; index < 7; index++) {
                     $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", true);
                 }
                 for (var index = 1; index < 8; index++) {
                     $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
                 }
+                DeselectStart(); DeselectEnd();
+                $('#InterventionTimeStartId option[value="' + 7 + '"]').attr("selected", true);
+                $('#InterventionTimeEndId option[value="' + 8 + '"]').attr("selected", true);
             }
             else if (dayId == 7) {
+                EnableAll();
                 for (var index = 7; index <= 23; index++) {
                     $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", true);
                 }
                 for (var index = 8; index <= 24; index++) {
                     $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
                 }
+                DeselectStart(); DeselectEnd();
+                $('#InterventionTimeStartId option[value="' + 0 + '"]').attr("selected", true);
+                $('#InterventionTimeEndId option[value="' + 1 + '"]').attr("selected", true);
             }
             else {
-                for (var index = 0; index <= 23; index++) {
-                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", false);
-                }
-                for (var index = 1; index <= 24; index++) {
-                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", false);
-                }
+                EnableAll();  DeselectStart(); DeselectEnd();
+                $('#InterventionTimeStartId option[value="' + 0 + '"]').attr("selected", true);
+                $('#InterventionTimeEndId option[value="' + 1 + '"]').attr("selected", true);
             }
     }
     
@@ -115,7 +121,7 @@
                 $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", false);
             }
 
-            for (var index = TimeId; index > 1; index--) {
+            for (var index = TimeId; index >= 1; index--) {
                 $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", true);
                 if (Number(selected) === index) {
                     isSelected = true;
@@ -123,9 +129,7 @@
             }
 
             if (isSelected) {
-                for (var index = 1; index <= 24; index++) {
-                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("selected", false);
-                }
+               DeselectEnd();
 
                 var selected = Number(TimeId) + 1;
                 $('#InterventionTimeEndId option[value="' + selected + '"]').attr("selected", true);
@@ -150,12 +154,37 @@
             }
 
             if (isSelected) {
-                for (var index = 0; index <= 23; index++) {
-                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("selected", false);
-                }
+                DeselectStart();
                 var selected = Number(TimeId) - 1;
                 $('#InterventionTimeStartId option[value="' + selected + '"]').attr("selected", true);
             }
-        }
-        
+            }
+
+
+
+
+
+
+            function DeselectStart() {
+                        for (var index = 0; index <= 23; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("selected", false);
+                }
+            }
+
+           function DeselectEnd() {
+                for (var index = 1; index <= 24; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("selected", false);
+                }
+            }
+
+           function EnableAll() {
+                for (var index = 0; index <= 23; index++) {
+                    $('#InterventionTimeStartId option[value="' + index + '"]').attr("disabled", false);
+                }
+                for (var index = 1; index <= 24; index++) {
+                    $('#InterventionTimeEndId option[value="' + index + '"]').attr("disabled", false);
+                }
+            }
+
+    SetTimesOnDayChange(0);
     </script>

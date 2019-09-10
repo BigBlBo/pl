@@ -21,75 +21,109 @@ namespace PlinovodiDezurstva.Data
 
         public async Task<IEnumerable<Employee>> GetEmployee()
         {
-            using (var conn = new SqlConnection(_options.Value.ConnectionString))
+            try
             {
+                using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    string queryString = @"SELECT ID, NAME, SURNAME FROM  [plinovodiduty].[employee]";
 
-                string queryString = @"SELECT ID, NAME, SURNAME FROM  [SRDAP].[plinovodiduty].[employee]";
+                    IEnumerable<Employee> employeeList = await conn.QueryAsync<Employee>(queryString).ConfigureAwait(false);
 
-                IEnumerable<Employee> employeeList = await conn.QueryAsync<Employee>(queryString).ConfigureAwait(false);
-
-                return employeeList;
+                    return employeeList;
+                }
+            }catch(Exception ex)
+            {
+                throw ex;
             }
         }
 
-        public async Task<IEnumerable<Duty>> GetEmployeeDuty(int Id)
+        public async Task<IEnumerable<Duty>> GetEmployeeDuties(int Id)
         {
-            using (var conn = new SqlConnection(_options.Value.ConnectionString))
+            try
             {
-                DynamicParameters prms = new DynamicParameters();
-                prms.Add("EmployeeId", Id);
+                using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    DynamicParameters prms = new DynamicParameters();
+                    prms.Add("EmployeeId", Id);
 
-                string queryString = @"SELECT A.ID, A.[FROM], A.[TO] FROM  [SRDAP].[plinovodiduty].[Duty] A INNER JOIN
-                                                [SRDAP].[plinovodiduty].[employeeonduty] B ON A.Id = B.DutyId WHERE B.EmployeeId = @EmployeeId";
+                    string queryString = @"SELECT A.ID, A.[FROM], A.[TO] FROM  [plinovodiduty].[Duty] A INNER JOIN
+                                                    [plinovodiduty].[employeeonduty] B ON A.Id = B.DutyId WHERE B.EmployeeId = @EmployeeId 
+                                                        ORDER BY A.[FROM] ASC";
 
-                IEnumerable<Duty> dutyList = await conn.QueryAsync<Duty>(queryString, prms).ConfigureAwait(false);
+                    IEnumerable<Duty> dutyList = await conn.QueryAsync<Duty>(queryString, prms).ConfigureAwait(false);
 
-                return dutyList;
+                    return dutyList;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
         public async Task<Duty> GetDuty(int Id)
         {
-            using (var conn = new SqlConnection(_options.Value.ConnectionString))
+            try
             {
-                DynamicParameters prms = new DynamicParameters();
-                prms.Add("Id", Id);
+                using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    DynamicParameters prms = new DynamicParameters();
+                    prms.Add("Id", Id);
 
-                string queryString = @"SELECT A.ID, A.[FROM], A.[TO] FROM  [SRDAP].[plinovodiduty].[Duty] A WHERE Id = @Id";
+                    string queryString = @"SELECT A.ID, A.[FROM], A.[TO] FROM [plinovodiduty].[Duty] A WHERE Id = @Id";
 
-                IEnumerable<Duty> dutyList = await conn.QueryAsync<Duty>(queryString, prms).ConfigureAwait(false);
+                    IEnumerable<Duty> dutyList = await conn.QueryAsync<Duty>(queryString, prms).ConfigureAwait(false);
 
-                return dutyList.FirstOrDefault();
+                    return dutyList.FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
         public async Task<IEnumerable<Intervention>> GetInterventions(int DutyId)
         {
-            using (var conn = new SqlConnection(_options.Value.ConnectionString))
+            try
             {
-                DynamicParameters prms = new DynamicParameters();
-                prms.Add("DutyId", DutyId);
+                using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    DynamicParameters prms = new DynamicParameters();
+                    prms.Add("DutyId", DutyId);
 
-                string queryString = @"SELECT ID, [FROM], [TO] ,[ShortDescription], [LongDescription] FROM  [SRDAP].[plinovodiduty].[Intervention] WHERE DutyId = @DutyId";
+                    string queryString = @"SELECT ID, [FROM], [TO] ,[ShortDescription], [LongDescription] FROM [plinovodiduty].[Intervention] WHERE DutyId = @DutyId";
 
-                IEnumerable<Intervention> interventionList = await conn.QueryAsync<Intervention>(queryString, prms).ConfigureAwait(false);
+                    IEnumerable<Intervention> interventionList = await conn.QueryAsync<Intervention>(queryString, prms).ConfigureAwait(false);
 
-                return interventionList;
+                    return interventionList;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
         public async Task<Intervention> GetIntervention(int Id)
         {
-            using (var conn = new SqlConnection(_options.Value.ConnectionString))
+            try
             {
-                DynamicParameters prms = new DynamicParameters();
-                prms.Add("Id", Id);
+                 using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    DynamicParameters prms = new DynamicParameters();
+                    prms.Add("Id", Id);
 
-                string queryString = @"SELECT ID, [FROM], [TO] ,[ShortDescription], [LongDescription] FROM  [SRDAP].[plinovodiduty].[Intervention] WHERE Id = @Id";
+                    string queryString = @"SELECT ID, [FROM], [TO] ,[ShortDescription], [LongDescription] FROM [plinovodiduty].[Intervention] WHERE Id = @Id";
 
-                IEnumerable<Intervention> interventionList = await conn.QueryAsync<Intervention>(queryString, prms).ConfigureAwait(false);
+                    IEnumerable<Intervention> interventionList = await conn.QueryAsync<Intervention>(queryString, prms).ConfigureAwait(false);
 
-                return interventionList.FirstOrDefault();
+                    return interventionList.FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }

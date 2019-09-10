@@ -10,5 +10,6 @@ namespace PlinovodiDezurstva.Data
     {
         Task InsertIntervention(Intervention Intervention);
         Task UpdateIntervention(Intervention Intervention);
+        Task DeleteIntervention(Intervention Intervention);
     }
 }
