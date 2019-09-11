@@ -31,125 +31,165 @@ namespace PlinovodiDezurstva.Controllers
 
         public async Task<ViewResult> Index()
         {
-            this._logger.Information($"Start {nameof(Index)}");
+            try
+            {
+                this._logger.Information($"Start {nameof(Index)}");
 
-            ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
-            SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
-            IEnumerable<Intervention> interventionList = await _plinovodiDutyDataRead.GetInterventions(ses.DutyId);
+                ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
+                SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
+                IEnumerable<Intervention> interventionList = await _plinovodiDutyDataRead.GetInterventions(ses.DutyId);
 
-            this._logger.Information($"End {nameof(Index)}");
-            return View(interventionList);
+                this._logger.Information($"End {nameof(Index)}");
+                return View(interventionList);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error($"Error {nameof(Index)} {ex.Message} {ex.StackTrace}");
+                throw ex;
+            }
         }
 
         public ViewResult CreateIntervention()
         {
-            this._logger.Information($"Start {nameof(CreateIntervention)}");
-
-            ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
-            SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
-
-            InterventionEdit interventionEdit = new InterventionEdit();
-            for(int index = 0; index < ses.DaysOfDuty.Count; index++)
+            try
             {
-                interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("dd-MM-yyyy") });
-            }
+                this._logger.Information($"Start {nameof(CreateIntervention)}");
 
-            this._logger.Information($"End {nameof(CreateIntervention)}");
-            return View("AddEditIntervention", interventionEdit);
+                ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
+                SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
+
+                InterventionEdit interventionEdit = new InterventionEdit();
+                for(int index = 0; index < ses.DaysOfDuty.Count; index++)
+                {
+                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("dd-MM-yyyy") });
+                }
+
+                this._logger.Information($"End {nameof(CreateIntervention)}");
+                return View("AddEditIntervention", interventionEdit);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error($"Error {nameof(CreateIntervention)} {ex.Message} {ex.StackTrace}");
+                throw ex;
+            }
         }
 
         public async Task<ViewResult> EditIntervention(int Id)
         {
-            this._logger.Information($"Start {nameof(EditIntervention)} Id = {Id}");
-
-            ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
-            SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
-            Intervention intervention = await _plinovodiDutyDataRead.GetIntervention(Id);
-
-            InterventionEdit interventionEdit = new InterventionEdit();
-            interventionEdit.Id = intervention.Id;
-            interventionEdit.ShortDescription = intervention.ShortDescription;
-            interventionEdit.LongDescription = intervention.LongDescription;
-            for (int index = 0; index < ses.DaysOfDuty.Count; index++)
+            try
             {
-                interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString() });
-            }
+                this._logger.Information($"Start {nameof(EditIntervention)} Id = {Id}");
 
-            for(int index = 0; index < ses.DaysOfDuty.Count;index++)
-            {
-                if (ses.DaysOfDuty[index].Day == intervention.From.Day)
+                ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
+                SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
+                Intervention intervention = await _plinovodiDutyDataRead.GetIntervention(Id);
+
+                InterventionEdit interventionEdit = new InterventionEdit();
+                interventionEdit.Id = intervention.Id;
+                interventionEdit.ShortDescription = intervention.ShortDescription;
+                interventionEdit.LongDescription = intervention.LongDescription;
+                for (int index = 0; index < ses.DaysOfDuty.Count; index++)
                 {
-                    interventionEdit.SelectedDay = index;
-                    break;
+                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString() });
                 }
-            }
 
-            for (int index = 0; index <= 23; index++)
-            {
-                if (intervention.From.Hour == index)
+                for(int index = 0; index < ses.DaysOfDuty.Count;index++)
                 {
-                    interventionEdit.SelectedStartTime = index;
-                    break;
+                    if (ses.DaysOfDuty[index].Day == intervention.From.Day)
+                    {
+                        interventionEdit.SelectedDay = index;
+                        break;
+                    }
                 }
-            }
 
-            for (int index = 1; index <= 24; index++)
-            {
-                if (intervention.To.Hour == index)
+                for (int index = 0; index <= 23; index++)
                 {
-                    interventionEdit.SelectedEndTime = index;
-                    break;
+                    if (intervention.From.Hour == index)
+                    {
+                        interventionEdit.SelectedStartTime = index;
+                        break;
+                    }
                 }
-            }
 
-            this._logger.Information($"End {nameof(EditIntervention)}");
-            return View("AddEditIntervention", interventionEdit);
+                for (int index = 1; index <= 24; index++)
+                {
+                    if (intervention.To.Hour == index)
+                    {
+                        interventionEdit.SelectedEndTime = index;
+                        break;
+                    }
+                }
+
+                this._logger.Information($"End {nameof(EditIntervention)}");
+                return View("AddEditIntervention", interventionEdit);
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error($"Error {nameof(EditIntervention)} GET {ex.Message} {ex.StackTrace}");
+                throw ex;
+            }
         }
 
         [HttpPost]
         public async Task<RedirectToActionResult> EditIntervention(InterventionPostBack interventionPostBack)
         {
-            this._logger.Information($"Start {nameof(EditIntervention)} interventionPostBack = {interventionPostBack}");
-
-            ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
-            SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
-            Intervention intervention = new Intervention();
-            intervention.Id = interventionPostBack.Id;
-            intervention.DutyId = ses.DutyId;
-            intervention.From = ses.DaysOfDuty[interventionPostBack.InterventionDayId];
-            intervention.From = new DateTime(intervention.From.Year, intervention.From.Month, intervention.From.Day, interventionPostBack.InterventionTimeStartId, 0, 0);
-
-            intervention.To = ses.DaysOfDuty[interventionPostBack.InterventionDayId];
-            intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, interventionPostBack.InterventionTimeEndId, 0, 0);
-
-            intervention.ShortDescription = interventionPostBack.ShortDescription;
-            intervention.LongDescription = interventionPostBack.LongDescription != null ? interventionPostBack.LongDescription : "";
-
-            if (interventionPostBack.Id == 0)
+            try
             {
-                await _plinovodiDutyDataWrite.InsertIntervention(intervention);
-            }
-            else
-            {
-                await _plinovodiDutyDataWrite.UpdateIntervention(intervention);
-            }
+                this._logger.Information($"Start {nameof(EditIntervention)} interventionPostBack = {interventionPostBack}");
 
-            this._logger.Information($"End {nameof(EditIntervention)}");
-            return RedirectToAction("Index");
+                ISession session = _services.GetRequiredService<IHttpContextAccessor>()?.HttpContext.Session;
+                SessionLogIn ses = session.GetJson<SessionLogIn>("ses");
+                Intervention intervention = new Intervention();
+                intervention.Id = interventionPostBack.Id;
+                intervention.DutyId = ses.DutyId;
+                intervention.From = ses.DaysOfDuty[interventionPostBack.InterventionDayId];
+                intervention.From = new DateTime(intervention.From.Year, intervention.From.Month, intervention.From.Day, interventionPostBack.InterventionTimeStartId, 0, 0);
+
+                intervention.To = ses.DaysOfDuty[interventionPostBack.InterventionDayId];
+                intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, interventionPostBack.InterventionTimeEndId, 0, 0);
+
+                intervention.ShortDescription = interventionPostBack.ShortDescription;
+                intervention.LongDescription = interventionPostBack.LongDescription != null ? interventionPostBack.LongDescription : "";
+
+                if (interventionPostBack.Id == 0)
+                {
+                    await _plinovodiDutyDataWrite.InsertIntervention(intervention);
+                }
+                else
+                {
+                    await _plinovodiDutyDataWrite.UpdateIntervention(intervention);
+                }
+
+                this._logger.Information($"End {nameof(EditIntervention)}");
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error($"Error {nameof(EditIntervention)} POST {ex.Message} {ex.StackTrace}");
+                throw ex;
+            }
         }
 
         [HttpPost]
         public async Task<RedirectToActionResult> Delete(int Id)
         {
-            this._logger.Information($"Start {nameof(Delete)} Id = {Id}");
+            try
+            {
+                this._logger.Information($"Start {nameof(Delete)} Id = {Id}");
 
-            Intervention intervention = new Intervention();
-            intervention.Id = Id;
+                Intervention intervention = new Intervention();
+                intervention.Id = Id;
 
-            await _plinovodiDutyDataWrite.DeleteIntervention(intervention);
+                await _plinovodiDutyDataWrite.DeleteIntervention(intervention);
 
-            this._logger.Information($"End {nameof(Delete)}");
-            return RedirectToAction("Index");
+                this._logger.Information($"End {nameof(Delete)}");
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                this._logger.Error($"Error {nameof(Delete)} POST {ex.Message} {ex.StackTrace}");
+                throw ex;
+            }
         }
     }
 }

@@ -13,5 +13,18 @@ namespace PlinovodiDezurstva.Models
         public DateTime To { get; set; }
         public string ShortDescription { get; set; }
         public string LongDescription { get; set; }
+
+        public Intervention GetCopy()
+        {
+            Intervention intervention = new Intervention();
+            intervention.Id = Id;
+            intervention.DutyId = DutyId;
+            intervention.From = new DateTime(From.Year, From.Month, From.Day, From.Hour, From.Minute, From.Second);
+            intervention.To = new DateTime(To.Year, To.Month, To.Day, To.Hour, To.Minute, To.Second);
+            intervention.ShortDescription = ShortDescription;
+            intervention.LongDescription = LongDescription;
+
+            return intervention;
+        }
     }
 }

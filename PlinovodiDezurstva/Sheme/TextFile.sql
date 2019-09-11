@@ -89,11 +89,11 @@ INSERT INTO [plinovodiduty].[employee] ([Name] ,[Surname]) VALUES ('Peter', 'Kle
 
 
 DECLARE @i int = 0
-DECLARE @startTime DateTime2 = '2019-09-02 07:00'
+DECLARE @startTime DateTime2 = '2019-08-05 07:00'
 select DATEADD(week, 1, @startTime)
 select DATEADD(hour, -1, DATEADD(week, 1, @startTime))
 
-WHILE @i < 10
+WHILE @i < 15
 BEGIN
     SET @i = @i + 1
 	INSERT INTO [plinovodiduty].[duty]([From] ,[To]) VALUES (@startTime,DATEADD(hour, -1, DATEADD(week, 1, @startTime)))

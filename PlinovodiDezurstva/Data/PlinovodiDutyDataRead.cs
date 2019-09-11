@@ -19,7 +19,7 @@ namespace PlinovodiDezurstva.Data
             this._options = options;
         }
 
-        public async Task<IEnumerable<Employee>> GetEmployee()
+        public async Task<IEnumerable<Employee>> GetEmployees()
         {
             try
             {
@@ -32,6 +32,28 @@ namespace PlinovodiDezurstva.Data
                     return employeeList;
                 }
             }catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<Employee> GetEmployee(int Id)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_options.Value.ConnectionString))
+                {
+                    DynamicParameters prms = new DynamicParameters();
+                    prms.Add("Id", Id);
+
+                    string queryString = @"SELECT ID, NAME, SURNAME FROM  [plinovodiduty].[employee] WHERE ID = @Id";
+
+                    IEnumerable<Employee> employeeList = await conn.QueryAsync<Employee>(queryString, prms).ConfigureAwait(false);
+
+                    return employeeList.FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
             {
                 throw ex;
             }
