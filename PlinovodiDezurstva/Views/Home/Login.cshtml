@@ -56,13 +56,17 @@
             cache: false,
             contentType: "application/json",
             type: "GET",
-            //headers:{ "RequestVerificationToken": token },
             success: function (data) {
                 console.log(data);
                 var markup = "";
                 for (var x = 0; x < data.length; x++) {
-                    markup += "<option value=" + data[x].id + ">" + data[x].obdobje + "</option>";
-                    document.getElementById("logInB").disabled = false;
+                    if (data[x].disabled == true) {
+                        markup += "<option disabled value=" + data[x].id + ">" + data[x].obdobje + "</option>";
+                    }
+                    else {
+                        markup += "<option value=" + data[x].id + ">" + data[x].obdobje + "</option>";
+                        document.getElementById("logInB").disabled = false;
+                    }
                 }
                 $("#dutyId").html(markup).show();
             },

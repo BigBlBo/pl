@@ -19,5 +19,6 @@ namespace PlinovodiDezurstva.Models.ViewModels
     {
         public int Id { get; set; }
         public string Obdobje { get; set; }
+        public bool Disabled { get; set; }
     }
 }

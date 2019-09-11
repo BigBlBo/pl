@@ -1,4 +1,13 @@
 ﻿
+DECLARE @dbname nvarchar(128)
+SET @dbname = N'PlinovodiDezurstva'
+IF (NOT EXISTS (SELECT name 
+FROM master.dbo.sysdatabases 
+WHERE ('[' + name + ']' = @dbname 
+OR name = @dbname))) create database PlinovodiDezurstva
+
+use PlinovodiDezurstva
+
 			IF NOT EXISTS ( SELECT  *
 							FROM    sys.schemas
 							WHERE   name = N'plinovodiduty' ) 
