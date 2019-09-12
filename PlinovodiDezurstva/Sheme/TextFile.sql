@@ -4,7 +4,7 @@ SET @dbname = N'PlinovodiDezurstva'
 IF (NOT EXISTS (SELECT name 
 FROM master.dbo.sysdatabases 
 WHERE ('[' + name + ']' = @dbname 
-OR name = @dbname))) create database PlinovodiDezurstva
+OR name = @dbname))) BEGIN create database PlinovodiDezurstva END
 
 use PlinovodiDezurstva
 
@@ -105,7 +105,7 @@ select DATEADD(hour, -1, DATEADD(week, 1, @startTime))
 WHILE @i < 15
 BEGIN
     SET @i = @i + 1
-	INSERT INTO [plinovodiduty].[duty]([From] ,[To]) VALUES (@startTime,DATEADD(hour, -1, DATEADD(week, 1, @startTime)))
+	INSERT INTO [plinovodiduty].[duty]([From] ,[To]) VALUES (@startTime,DATEADD(week, 1, @startTime))
 	SET @startTime = DATEADD(week, 1, @startTime)
 END
 

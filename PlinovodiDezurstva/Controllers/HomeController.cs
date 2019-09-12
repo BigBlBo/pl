@@ -60,7 +60,7 @@ namespace PlinovodiDezurstva.Controllers
                 List<Interval> dutyInterval = new List<Interval>();
                 foreach (Duty duty in dutyList)
                 {
-                    dutyInterval.Add(new Interval { Id = duty.Id, Obdobje = duty.From.ToString() + " - " + duty.To.ToString(), Disabled = DateTime.Now < duty.From });
+                    dutyInterval.Add(new Interval { Id = duty.Id, Obdobje = duty.From.ToString("d.M.yyyy HH:mm") + " - " + duty.To.ToString("d.M.yyyy HH:mm"), Disabled = DateTime.Now < duty.From });
                 }
 
                 this._logger.Information($"End {nameof(GetIntervalByEmployeeId)}");

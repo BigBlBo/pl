@@ -4,6 +4,7 @@ using PlinovodiDezurstva.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace PlinovodiDezurstva.Utils
 {
@@ -21,6 +22,7 @@ namespace PlinovodiDezurstva.Utils
             int[] takenHoursInOneDay = GetTakenHours(interventionListSeperated, duty);
             GenerateHourOverwiev(pdfDoc, employee, duty, takenHoursInOneDay, interventionListSeperated);
             GenerateComplains(pdfDoc, employee, interventionList);
+
             pdfWriter.CloseStream = false;
             pdfDoc.Close();
 
@@ -31,7 +33,6 @@ namespace PlinovodiDezurstva.Utils
             IEnumerable<Intervention> interventionListSeperated)
         {
             double realHoursAllSum = 0;
-            int realHoursAllSumIntervention = 0;
             int hoursSum = 0;
             double realHoursSum = 0;
 
@@ -89,10 +90,10 @@ namespace PlinovodiDezurstva.Utils
             bool weHaveInterventions = false;
             foreach (Intervention intervention in interventionListSeperated)
             {
+                int endHour = intervention.From.Day != intervention.To.Day ? 24 : intervention.To.Hour;
                 PlinovodiDezurstvaUtils.AddTableLine(table, new List<string>() { PlinovodiDezurstvaUtils.SubStringMonthInDate(intervention.From.ToString("d.MMMM.yy")), "",
-                        intervention.From.ToString("HH:mm"), intervention.To.ToString("HH:mm"), intervention.ShortDescription });
+                        intervention.From.ToString("HH:mm"), endHour + ":00", intervention.ShortDescription });
 
-                realHoursAllSumIntervention += intervention.To.Hour - intervention.From.Hour;
                 weHaveInterventions = true;
             }
             if (weHaveInterventions)
@@ -107,7 +108,7 @@ namespace PlinovodiDezurstva.Utils
             ///
 
             //add Footer
-            PlinovodiDezurstvaUtils.AddFooter(pdfDoc, employee, duty, realHoursAllSum, realHoursAllSumIntervention);
+            PlinovodiDezurstvaUtils.AddFooter(pdfDoc, employee, duty, realHoursAllSum, takenHoursInOneDay);
         }
 
         private static void GenerateComplains(Document pdfDoc, Employee employee, IEnumerable<Intervention> interventionList)
@@ -150,6 +151,7 @@ namespace PlinovodiDezurstva.Utils
                 cell.Border = 0;
                 table.AddCell(cell);
                 cell = new PdfPCell(new Phrase(intervention.From.ToString("HH:mm")));
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 cell.Colspan = 1;
                 cell.Border = 0;
                 cell.BorderWidthBottom = 1;
@@ -192,6 +194,7 @@ namespace PlinovodiDezurstva.Utils
                 cell.BorderWidthBottom = 1;
                 table.AddCell(cell);
                 cell = new PdfPCell(new Phrase("uri"));
+                cell.HorizontalAlignment = Element.ALIGN_RIGHT;
                 cell.Colspan = 1;
                 cell.Border = 0;
                 table.AddCell(cell);
@@ -202,6 +205,7 @@ namespace PlinovodiDezurstva.Utils
                 cell.Border = 0;
                 table.AddCell(cell);
                 cell = new PdfPCell(new Phrase(intervention.To.ToString("HH:mm")));
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 cell.Colspan = 1;
                 cell.Border = 0;
                 cell.BorderWidthBottom = 1;
@@ -214,7 +218,9 @@ namespace PlinovodiDezurstva.Utils
                 cell.Colspan = 2;
                 cell.Border = 0;
                 table.AddCell(cell);
-                cell = new PdfPCell(new Phrase((intervention.To.Hour - intervention.From.Hour).ToString()));
+                int endHour = intervention.From.Day != intervention.To.Day ? 24 : intervention.To.Hour;
+                cell = new PdfPCell(new Phrase((endHour - intervention.From.Hour).ToString()));
+                cell.HorizontalAlignment = Element.ALIGN_CENTER;
                 cell.Colspan = 2;
                 cell.Border = 0;
                 cell.BorderWidthBottom = 1;
@@ -226,12 +232,40 @@ namespace PlinovodiDezurstva.Utils
 
                 Chunk chunk = new Chunk("Kratek opis javljenega nedovoljenega stanja:\n", FontFactory.GetFont(BaseFont.TIMES_ROMAN, 14, Font.BOLD, BaseColor.BLACK));
                 pdfDoc.Add(chunk);
+                table = new PdfPTable(1);
+                cell = new PdfPCell(new Phrase(intervention.ShortDescription));
+                cell.Colspan = 2;
+                cell.Border = 0;
+                table.AddCell(cell);
+                pdfDoc.Add(table);
+
                 chunk = new Chunk("Stanje ob prihodu:\n", FontFactory.GetFont(BaseFont.TIMES_ROMAN, 14, Font.BOLD, BaseColor.BLACK));
                 pdfDoc.Add(chunk);
+                table = new PdfPTable(1);
+                cell = new PdfPCell(new Phrase("Opis stanja ob prihodu."));
+                cell.Colspan = 2;
+                cell.Border = 0;
+                table.AddCell(cell);
+                pdfDoc.Add(table);
+
                 chunk = new Chunk("Ukrepi in opis opravljenega dela:\n", FontFactory.GetFont(BaseFont.TIMES_ROMAN, 14, Font.BOLD, BaseColor.BLACK));
                 pdfDoc.Add(chunk);
+                table = new PdfPTable(1);
+                cell = new PdfPCell(new Phrase(intervention.LongDescription));
+                cell.Colspan = 2;
+                cell.Border = 0;
+                table.AddCell(cell);
+                pdfDoc.Add(table);
+
                 chunk = new Chunk("Vzrok:\n", FontFactory.GetFont(BaseFont.TIMES_ROMAN, 14, Font.BOLD, BaseColor.BLACK));
                 pdfDoc.Add(chunk);
+                table = new PdfPTable(1);
+                cell = new PdfPCell(new Phrase("Opis vzroka."));
+                cell.Colspan = 2;
+                cell.Border = 0;
+                table.AddCell(cell);
+                pdfDoc.Add(table);
+
                 chunk = new Chunk("Porabljen material:", FontFactory.GetFont(BaseFont.TIMES_ROMAN, 14, Font.BOLD, BaseColor.BLACK));
                 pdfDoc.Add(chunk);
                 table = GetTable(2);
@@ -297,7 +331,8 @@ namespace PlinovodiDezurstva.Utils
                 {
                     if (intervention.From.Day == duty.From.AddDays(indexDays).Day)
                     {
-                        for (int hour = intervention.From.Hour; hour < intervention.To.Hour; hour++)
+                        int endHour = intervention.From.Day != intervention.To.Day ? 24 : intervention.To.Hour;
+                        for (int hour = intervention.From.Hour; hour < endHour; hour++)
                         {
                             hoursTaken[hour]++;
                         }
@@ -326,15 +361,16 @@ namespace PlinovodiDezurstva.Utils
                 {
                     if (intervention.From.Day == duty.From.AddDays(indexDays).Day && indexDays < 5)
                     {
+                        int endHour = intervention.From.Day != intervention.To.Day ? 24 : intervention.To.Hour;
                         if (intervention.From.Hour < 7)
                         {
                             Intervention interventionCopy = intervention.GetCopy();
-                            interventionCopy.To = new DateTime(interventionCopy.To.Year, interventionCopy.To.Month, interventionCopy.To.Day,
-                                interventionCopy.To.Hour > 7 ? 7 : interventionCopy.To.Hour, interventionCopy.To.Minute, interventionCopy.To.Second);
+                            interventionCopy.To = new DateTime(interventionCopy.From.Year, interventionCopy.From.Month, interventionCopy.From.Day,
+                                endHour > 7 ? 7 : endHour, interventionCopy.From.Minute, interventionCopy.From.Second);
                             interventionListSeperated.Add(interventionCopy);
                         }
 
-                        if (intervention.To.Hour > 15)
+                        if (endHour > 15)
                         {
                             Intervention interventionCopy = intervention.GetCopy();
                             interventionCopy.From = new DateTime(interventionCopy.From.Year, interventionCopy.From.Month, interventionCopy.From.Day,
@@ -370,11 +406,11 @@ namespace PlinovodiDezurstva.Utils
             pdfDoc.Add(pt);
         }
 
-        private static void AddFooter(Document pdfDoc, Employee employee, Duty duty, double realHoursAllSum, int realHoursAllSumIntervention)
+        private static void AddFooter(Document pdfDoc, Employee employee, Duty duty, double realHoursAllSum, int[] takenHoursInOneDay)
         {
             PdfPTable pt = new PdfPTable(1);
             AddCellRight(pt, "Skupaj - redne ure " + realHoursAllSum);
-            AddCellRight(pt, "Skupaj - interventne ure " + realHoursAllSumIntervention);
+            AddCellRight(pt, "Skupaj - interventne ure " + takenHoursInOneDay.Sum()); //interventnih ur je toliko kot je bilo odvzetih
 
             pdfDoc.Add(pt);
 
@@ -416,7 +452,7 @@ namespace PlinovodiDezurstva.Utils
             PdfPTable table = new PdfPTable(size);
             table.WidthPercentage = 100;
             table.HorizontalAlignment = 0;
-            table.SpacingBefore = 20f;
+            table.SpacingBefore = 10f;
             table.SpacingAfter = 30f;
 
             return table;
@@ -438,28 +474,28 @@ namespace PlinovodiDezurstva.Utils
             switch (dayIndex)
             {
                 case 0:
-                    dayHourCount = 10 - takenHoursInOneDay[0];
+                    dayHourCount = 9 - takenHoursInOneDay[dayIndex];
                     break;
                 case 1:
-                    dayHourCount = 16 - takenHoursInOneDay[1];
+                    dayHourCount = 16 - takenHoursInOneDay[dayIndex];
                     break;
                 case 2:
-                    dayHourCount = 16 - takenHoursInOneDay[2];
+                    dayHourCount = 16 - takenHoursInOneDay[dayIndex];
                     break;
                 case 3:
-                    dayHourCount = 16 - takenHoursInOneDay[2];
+                    dayHourCount = 16 - takenHoursInOneDay[dayIndex];
                     break;
                 case 4:
-                    dayHourCount = 16 - takenHoursInOneDay[4];
+                    dayHourCount = 16 - takenHoursInOneDay[dayIndex];
                     break;
                 case 5:
-                    dayHourCount = 24 - takenHoursInOneDay[5];
+                    dayHourCount = 24 - takenHoursInOneDay[dayIndex];
                     break;
                 case 6:
-                    dayHourCount = 24 - takenHoursInOneDay[6];
+                    dayHourCount = 24 - takenHoursInOneDay[dayIndex];
                     break;
                 case 7:
-                    dayHourCount = 6 - takenHoursInOneDay[7];
+                    dayHourCount = 7 - takenHoursInOneDay[dayIndex];
                     break;
             }
 

@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 using PlinovodiDezurstva.Models;
 
 namespace PlinovodiDezurstva.Infrastructure
@@ -14,7 +17,8 @@ namespace PlinovodiDezurstva.Infrastructure
             // check if session is supported
             if (session == null || session.GetJson<SessionLogIn>("ses") == null)
             {
-                context.HttpContext.Response.Redirect("/Home/Index");
+                context.Result = new RedirectToRouteResult(new
+                           RouteValueDictionary(new { controller = "Home", action = "Index" }));
             }
         }
     }

@@ -61,7 +61,7 @@ namespace PlinovodiDezurstva.Controllers
                 InterventionEdit interventionEdit = new InterventionEdit();
                 for(int index = 0; index < ses.DaysOfDuty.Count; index++)
                 {
-                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("dd-MM-yyyy") });
+                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("d-M-yyyy") });
                 }
 
                 this._logger.Information($"End {nameof(CreateIntervention)}");
@@ -90,7 +90,7 @@ namespace PlinovodiDezurstva.Controllers
                 interventionEdit.LongDescription = intervention.LongDescription;
                 for (int index = 0; index < ses.DaysOfDuty.Count; index++)
                 {
-                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString() });
+                    interventionEdit.Days.Add(new InterventionDay { Id = index, Day = ses.DaysOfDuty[index].ToString("d.M.yyyy") });
                 }
 
                 for(int index = 0; index < ses.DaysOfDuty.Count;index++)
@@ -102,23 +102,9 @@ namespace PlinovodiDezurstva.Controllers
                     }
                 }
 
-                for (int index = 0; index <= 23; index++)
-                {
-                    if (intervention.From.Hour == index)
-                    {
-                        interventionEdit.SelectedStartTime = index;
-                        break;
-                    }
-                }
-
-                for (int index = 1; index <= 24; index++)
-                {
-                    if (intervention.To.Hour == index)
-                    {
-                        interventionEdit.SelectedEndTime = index;
-                        break;
-                    }
-                }
+                interventionEdit.SelectedStartTime = intervention.From.Hour;
+                int endhour = intervention.From.Day != intervention.To.Day ? 24 : intervention.To.Hour;
+                interventionEdit.SelectedEndTime = endhour;
 
                 this._logger.Information($"End {nameof(EditIntervention)}");
                 return View("AddEditIntervention", interventionEdit);
@@ -146,7 +132,15 @@ namespace PlinovodiDezurstva.Controllers
                 intervention.From = new DateTime(intervention.From.Year, intervention.From.Month, intervention.From.Day, interventionPostBack.InterventionTimeStartId, 0, 0);
 
                 intervention.To = ses.DaysOfDuty[interventionPostBack.InterventionDayId];
-                intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, interventionPostBack.InterventionTimeEndId, 0, 0);
+                if(interventionPostBack.InterventionTimeEndId == 24)
+                {
+                    intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, 0, 0, 0);
+                    intervention.To = intervention.To.AddDays(1);
+                }
+                else
+                {
+                    intervention.To = new DateTime(intervention.To.Year, intervention.To.Month, intervention.To.Day, interventionPostBack.InterventionTimeEndId, 0, 0);
+                }
 
                 intervention.ShortDescription = interventionPostBack.ShortDescription;
                 intervention.LongDescription = interventionPostBack.LongDescription != null ? interventionPostBack.LongDescription : "";

@@ -11,8 +11,8 @@
     {
 <tr>
     <td>@item.ShortDescription</td>
-    <td class="text-right">@item.From</td>
-    <td class="text-right">@item.To</td>
+    <td class="text-right">@item.From.ToString("d.M.yyyy HH:mm")</td>
+    <td class="text-right">@item.To.ToString("d.M.yyyy HH:mm")</td>
     <td class="text-center">
         <form asp-action="Delete" method="post">
             <a asp-action="EditIntervention" class="btn btn-sm btn-warning"
