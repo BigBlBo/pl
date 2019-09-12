@@ -1,3 +1,11 @@
+Skripta za bazo v folderju 'Sheme' (MS SQL)
+4 tabele 
+	-employee -> 		zaposleni ki opravljajo dežurstva (generira skripta)
+	-duty ->	 		obdobja dežurstev ki so pripravljana (generira skripta)
+	-employeeonduty -> 	kateremu obdobju je dodeljen posamezni zaposleni (generira skripta)
+	-intervention ->	posredovanja v posameznem obdobju
+	
+libman za bootstrap in jquery (verjetno potrebno zagnati restore client side libraries)
 
 
 
